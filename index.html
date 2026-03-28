@@ -1,0 +1,13 @@
+function handleCommand(raw){const command=raw.toLowerCase().trim();if(command.includes('start'))return startSession();if(command.includes('repeat')||command.includes('replay'))return speakScenario();if(command.includes('explain'))return explainCurrent();if(command==='next'||command.includes('next scenario'))return nextScenario();if(command.includes('stop listening'))return stopListening();const match=command.match(/answer\s+([a-d])/i)||command.match(/^([a-d])$/i);if(match){const idx=match[1].toUpperCase().charCodeAt(0)-65;return answer(idx);}els.feedbackText.textContent=`Heard: "${raw}" but did not match a command.`;}
+function startListening(){if(!recognition){els.feedbackText.textContent='Voice recognition is not supported in this browser.';return;}recognition.start();}
+function stopListening(){if(!recognition)return;listening=false;recognition.stop();els.voiceState.textContent='Off';els.listenState.textContent='Idle';}
+if(recognition){recognition.onstart=()=>{listening=true;els.voiceState.textContent='Listening';els.listenState.textContent='Listening';els.feedbackText.textContent='Voice control active.';};recognition.onresult=(event)=>{const text=event.results[event.results.length-1][0].transcript;els.feedbackText.textContent=`Heard: ${text}`;handleCommand(text);};recognition.onend=()=>{if(listening){try{recognition.start();}catch(e){}}};recognition.onerror=(event)=>{els.feedbackText.textContent=`Voice recognition error: ${event.error}`;};}
+els.startBtn.addEventListener('click',startSession);
+els.replayBtn.addEventListener('click',speakScenario);
+els.listenBtn.addEventListener('click',()=>{if(listening)stopListening();else startListening();});
+els.nextBtn.addEventListener('click',nextScenario);
+els.explainBtn.addEventListener('click',explainCurrent);
+render();
+</script>
+</body>
+</html>
