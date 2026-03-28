@@ -1,22 +1,121 @@
-function nextCard(){
-i = (i + 1) % data.length;
-render();
-feedback.textContent = "New scenario loaded.";
-replay();
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NREMT Audio Trainer</title>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f172a;color:#e5e7eb}
+main{max-width:760px;margin:0 auto;padding:20px 16px 40px}
+.card{background:#111827;border:1px solid #334155;border-radius:16px;padding:16px;margin-top:16px}
+button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:12px;background:#38bdf8;color:#082f49;font-weight:700}
+.choice{background:#1e293b;color:#e5e7eb;border:1px solid #475569}
+.small{color:#94a3b8;font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+<h1>NREMT Audio Trainer</h1>
+<p class="small">Audio-first fictional exam-prep prototype</p>
+
+<div class="card">
+<div><strong id="count">1 / 3</strong></div>
+<h2 id="title">Scenario</h2>
+<p id="text"></p>
+</div>
+
+<div class="card">
+<h3>Choices</h3>
+<div id="choices"></div>
+</div>
+
+<div class="card">
+<h3>Feedback</h3>
+<p id="feedback">Tap Start Session.</p>
+</div>
+
+<button id="start">Start Session</button>
+<button id="replay">Replay</button>
+<button id="next">Next</button>
+<button id="explain">Explain</button>
+
+<div class="card">
+<p class="small">Voice output should work in Safari. Voice input can be added later after we stabilize the basic app.</p>
+</div>
+</main>
+
+<script>
+const data = [
+{
+title: "Airway Priority",
+text: "An adult patient is anxious, speaking one-word answers, and has noisy breathing. On a test question, what should come first?",
+choices: [
+"Take a full history first",
+"Address airway and breathing first",
+"Check glucose before anything else",
+"Wait for more responders"
+],
+correct: 1,
+explain: "Immediate life threats come first. On the exam, airway and breathing outrank deeper history."
+},
+{
+title: "Scene Size-Up",
+text: "You arrive at a fictional scene with an injured patient and scattered debris. What is the first test-focused step?",
+choices: [
+"Scene safety and general impression",
+"Ask about medications",
+"Get insurance information",
+"Go straight to secondary assessment"
+],
+correct: 0,
+explain: "The test rewards basic sequence: scene safety, general impression, then immediate priorities."
+},
+{
+title: "Priority vs History",
+text: "A patient is showing worsening distress while you are still asking questions. What should guide your next step?",
+choices: [
+"History always comes first",
+"Priority problems outrank extra questioning",
+"Paperwork matters most",
+"Wait and see"
+],
+correct: 1,
+explain: "Do not get lost in history-taking when the scenario signals immediate priority problems."
+}
+];
+
+let i = 0;
+
+const count = document.getElementById("count");
+const title = document.getElementById("title");
+const text = document.getElementById("text");
+const choices = document.getElementById("choices");
+const feedback = document.getElementById("feedback");
+
+function speak(msg){
+if (!window.speechSynthesis) return;
+speechSynthesis.cancel();
+const u = new SpeechSynthesisUtterance(msg);
+speechSynthesis.speak(u);
 }
 
-function explainCard(){
+function render(){
 const s = data[i];
-feedback.textContent = s.explain;
-speak(s.explain);
+count.textContent = (i + 1) + " / " + data.length;
+title.textContent = s.title;
+text.textContent = s.text;
+choices.innerHTML = "";
+s.choices.forEach((c, idx) => {
+const b = document.createElement("button");
+b.className = "choice";
+b.textContent = String.fromCharCode(65 + idx) + ". " + c;
+b.onclick = () => answer(idx);
+choices.appendChild(b);
+});
 }
 
-document.getElementById("start").onclick = startSession;
-document.getElementById("replay").onclick = replay;
-document.getElementById("next").onclick = nextCard;
-document.getElementById("explain").onclick = explainCard;
-
-render();
-</script>
-</body>
-</html>
+function answer(idx){
+const s = data[i];
+if (idx === s.correct) {
+feedback.textContent = "Correct. " + s.explain;
+} else {
